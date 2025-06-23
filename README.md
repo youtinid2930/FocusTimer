@@ -25,7 +25,7 @@
 1. Clone the repo:
    navigate to your desired directory:
    ```bash
-   git clone git@github.com:yourusername/FocusTimer.git
+   git clone https://github.com/youtinid2930/FocusTimer.git
 and the :
    ```bash
    cd FocusTimer
