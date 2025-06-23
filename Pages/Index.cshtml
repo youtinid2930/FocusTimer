@@ -1,0 +1,233 @@
+﻿@page
+@model FocusTimer.Pages.IndexModel
+@{
+    ViewData["Title"] = "FocusTimer - Pomodoro";
+}
+
+<div class="pomodoro-container">
+    <h1 class="pomodoro-title">FocusTimer</h1>
+    <p class="pomodoro-subtitle">Technique Pomodoro</p>
+
+    <form method="post" id="pomodoroForm" class="task-form">
+        <div class="form-group">
+            <label for="taskInput" class="form-label">Tâche en cours :</label>
+            <input type="text" id="taskInput" name="TaskName" class="form-input" required
+                   placeholder="Ex: Révision du projet X" />
+        </div>
+
+        <input type="hidden" id="startTime" name="StartTime" />
+        <input type="hidden" id="durationMinutes" name="DurationMinutes" />
+        <button type="submit" id="submitBtn" style="display:none;"></button>
+    </form>
+
+    <div id="timer" class="timer-display">
+        <span id="minutes">25</span>:<span id="seconds">00</span>
+    </div>
+
+    <div class="timer-controls">
+        <button id="startBtn" class="btn btn-start">
+            <i class="fas fa-play"></i> Démarrer
+        </button>
+        <button id="pauseBtn" class="btn btn-pause" disabled>
+            <i class="fas fa-pause"></i> Pause
+        </button>
+        <button id="stopBtn" class="btn btn-stop" disabled>
+            <i class="fas fa-stop"></i> Arrêter
+        </button>
+    </div>
+
+    <audio id="alarmSound" src="~/sounds/alarm.mp3" preload="auto"></audio>
+</div>
+
+
+    
+
+@section Scripts {
+    <script>
+                let timer = null;
+        let totalSeconds = 25 * 60;
+        let startTimestamp = null;
+        let isPaused = false;
+        let mode = "work"; // "work", "short", "long"
+
+        // Durées en minutes (modifiable via presets)
+        let workDuration = 25;
+        let shortBreakDuration = 5;
+        let longBreakDuration = 15;
+        function playAlarm() {
+            const sound = document.getElementById("alarmSound");
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        function stopAlarm() {
+            const sound = document.getElementById("alarmSound");
+            sound.pause();
+            sound.currentTime = 0;
+        }
+        // Mise à jour affichage timer
+        function updateTimer() {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            document.getElementById("timer").textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Obtenir la durée en secondes selon mode
+        function getDurationSeconds(currentMode) {
+            switch (currentMode) {
+                case "work": return workDuration * 60;
+                case "short": return shortBreakDuration * 60;
+                case "long": return longBreakDuration * 60;
+                default: return workDuration * 60;
+            }
+        }
+
+        // Changer mode suivant automatiquement
+        function switchMode() {
+            if (mode === "work") {
+                mode = "short"; // après travail → pause courte
+            } else if (mode === "short") {
+                mode = "work"; // après pause courte → travail
+            } else {
+                mode = "work"; // après pause longue → travail (tu peux adapter)
+            }
+            totalSeconds = getDurationSeconds(mode);
+            updateTimer();
+            updateModeButtons();
+        }
+
+        // Lancer le timer
+        function startCountdown() {
+            document.getElementById("timer").classList.add("timer-active");
+
+            if (!startTimestamp) {
+                startTimestamp = new Date();
+                document.getElementById("startTime").value = startTimestamp.toISOString();
+            }
+
+            timer = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updateTimer();
+                } else {
+                    clearInterval(timer);
+                    timer = null;
+
+                    // Enregistrement durée passée
+                    document.getElementById("durationMinutes").value = getDurationSeconds(mode) / 60;
+
+                    // Soumettre formulaire automatiquement
+                    document.getElementById("submitBtn").click();
+
+                    // Passer au mode suivant et relancer timer automatiquement
+                    switchMode();
+                    startTimestamp = null;
+                    startCountdown();
+                }
+            }, 1000);
+        }
+
+        // Mettre à jour l'état des boutons mode
+        function updateModeButtons() {
+            const modes = ["work", "short", "long"];
+            modes.forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                if (m === mode) {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+        }
+
+        // Gestion boutons
+
+        document.getElementById("startBtn").addEventListener("click", () => {
+            if (!timer) {
+                // Si on démarre pour la première fois, initialise le timer avec la durée du mode choisi
+                if (!isPaused) {
+                    totalSeconds = getDurationSeconds(mode);
+                    updateTimer();
+                }
+                startCountdown();
+                isPaused = false;
+
+                document.getElementById("startBtn").disabled = true;
+                document.getElementById("pauseBtn").disabled = false;
+                document.getElementById("stopBtn").disabled = false;
+            }
+        });
+
+        document.getElementById("pauseBtn").addEventListener("click", () => {
+            const pauseBtn = document.getElementById("pauseBtn");
+
+            if (timer && !isPaused) {
+                clearInterval(timer);
+                timer = null;
+                isPaused = true;
+                setTimeout(() => {
+                    playAlarm();
+                }, 2000);
+                pauseBtn.innerHTML = '<i class="fas fa-play me-2"></i>Reprendre';
+                document.getElementById("timer").classList.remove("timer-active");
+                document.getElementById("startBtn").disabled = false;
+            } else if (isPaused) {
+                startCountdown();
+                isPaused = false;
+                pauseBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause';
+                document.getElementById("startBtn").disabled = true;
+            }
+        });
+
+        document.getElementById("stopBtn").addEventListener("click", () => {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+            startTimestamp = null;
+                    setTimeout(() => {
+            playAlarm();
+        }, 2000);
+            isPaused = false;
+            totalSeconds = getDurationSeconds(mode);
+            updateTimer();
+
+            document.getElementById("timer").classList.remove("timer-active");
+
+            document.getElementById("pauseBtn").innerHTML = '<i class="fas fa-pause me-2"></i>Pause';
+            document.getElementById("startBtn").disabled = false;
+            document.getElementById("pauseBtn").disabled = true;
+            document.getElementById("stopBtn").disabled = true;
+        });
+
+        // Gestion des boutons modes manuels
+        document.querySelectorAll(".mode-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                mode = btn.id.replace("mode-", "");
+                totalSeconds = getDurationSeconds(mode);
+                updateTimer();
+                updateModeButtons();
+
+                // Arrêter timer si en cours
+                if (timer) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+                isPaused = false;
+
+                document.getElementById("pauseBtn").innerHTML = '<i class="fas fa-pause me-2"></i>Pause';
+                document.getElementById("startBtn").disabled = false;
+                document.getElementById("pauseBtn").disabled = true;
+                document.getElementById("stopBtn").disabled = true;
+            });
+        });
+
+        // Initialisation à l’ouverture
+        updateTimer();
+        updateModeButtons();
+        document.getElementById("pauseBtn").disabled = true;
+        document.getElementById("stopBtn").disabled = true;
+
+
+    </script>
+}

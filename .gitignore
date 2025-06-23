@@ -1,0 +1,25 @@
+# Build files
+bin/
+obj/
+*.user
+*.suo
+
+# Visual Studio
+.vs/
+
+# IDE settings
+.idea/
+.vscode/
+
+# Log files
+*.log
+
+# Environment
+.env
+
+# ASP.NET Core secrets
+appsettings.Development.json
+appsettings.Local.json
+
+# Publish artifacts
+*.publishsettings
