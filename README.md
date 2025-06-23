@@ -26,11 +26,22 @@
    navigate to your desired directory:
    ```bash
    git clone https://github.com/youtinid2930/FocusTimer.git
-and the :
+2. Install dependecies:
    ```bash
    cd FocusTimer
    dotnet restore
-   dotnet ef database update
+3. Setup Database:
+   1. You can use Terminal:
+      ```terminal
+      dotnet tool install --global dotnet-ef
+      dotnet ef database update
+   2. Or navigate in VS to Tools>Nuget Package Manager> Package Manager Console:
+       ```Nuget
+       Update-Database
+4. Run the application
+   ```Terminal
    dotnet run
 
-2. then go to https://localhost:5001
+5. then go to https://localhost:5001
+6. to view database use SQL Server Management:
+   name user : (localdb)\MSSQLLocalDB , authentication : windows authentication
