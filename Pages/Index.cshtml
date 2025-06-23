@@ -37,6 +37,12 @@
     </div>
 
     <audio id="alarmSound" src="~/sounds/alarm.mp3" preload="auto"></audio>
+    <div class="mode-buttons">
+        <button type="button" id="mode-work" class="mode-btn btn btn-outline-primary">Travail</button>
+        <button type="button" id="mode-short" class="mode-btn btn btn-outline-success">Pause Courte</button>
+        <button type="button" id="mode-long" class="mode-btn btn btn-outline-warning">Pause Longue</button>
+    </div>
+    <div id="modeLabel" class="current-mode">Mode : Travail</div>
 </div>
 
 
@@ -198,6 +204,9 @@
             document.getElementById("startBtn").disabled = false;
             document.getElementById("pauseBtn").disabled = true;
             document.getElementById("stopBtn").disabled = true;
+
+            document.getElementById("durationMinutes").value = getDurationSeconds(mode) / 60;
+            document.getElementById("submitBtn").click();
         });
 
         // Gestion des boutons modes manuels
@@ -221,6 +230,9 @@
                 document.getElementById("stopBtn").disabled = true;
             });
         });
+        document.getElementById("modeLabel").textContent = `Mode : ${mode === "work" ? "Travail" :
+                mode === "short" ? "Pause Courte" : "Pause Longue"
+            }`;
 
         // Initialisation à l’ouverture
         updateTimer();
