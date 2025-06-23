@@ -23,8 +23,12 @@
 ## Usage
 
 1. Clone the repo:
+   navigate to your desired directory:
    ```bash
    git clone git@github.com:yourusername/FocusTimer.git
+and the :
+   ```bash
+   cd FocusTimer
    dotnet restore
    dotnet ef database update
    dotnet run
